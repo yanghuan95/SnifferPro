@@ -6,13 +6,17 @@
  ************************************************************************/
 
 #include<stdio.h>
+#include<unistd.h>
 #include<pcap.h>
 #include<time.h>
 #include<stdlib.h>
 #include<fcntl.h>
 #include<sys/stat.h>
 #include<sys/types.h>
+#include<netdb.h>
+#include<arpa/inet.h>
 #include<netinet/in.h>
+#include<ctype.h>
 
 //only sniffer the packet from 80 port
 #define FILTER_PORT 80
@@ -23,7 +27,7 @@ const char *analysis_log = "grep_packet_analy.log";
 void filterPacket(pcap_t *device);	//filter the packet by port
 void dealData(u_char *usearg, 
 		const struct pcap_pkthdr *pkthdr, const u_char *packet); //deal Data function
-void analysisData(const struct pcap_pkthdr *pkthdr, u_char *packet);
+void analysisData(const struct pcap_pkthdr *pkthdr, const u_char *packet);
 
 int main(int argc, char *argv[]){
 	char errBuffer[PCAP_ERRBUF_SIZE], *dev;
@@ -65,16 +69,16 @@ int main(int argc, char *argv[]){
 	}else{
 		//use user into to sniffer
 		//asume it is the IP like 192.168.10.1
-		in_addr IP;
+		struct in_addr *IP = NULL;
 		if(isdigit(argv[1])){
-			inet_aton(argv[1], &IP);	
+			inet_aton(argv[1], IP);	
 		}else{
-			hostent *dns = gethostbyname(argv[1]);
+			struct hostent *dns = gethostbyname(argv[1]);
 			if(dns == NULL){
 				fprintf(stdout, "there is no host like: %s\n",argv[1]);
 				exit(0);
 			}
-			IP = (in_addr) dns->h_addr_list[0];
+			IP = (struct in_addr *) &dns->h_addr_list[0];
 		}
 
 	}
@@ -84,7 +88,7 @@ void dealData(u_char *usearg, const struct pcap_pkthdr *pkthdr, const u_char *pa
 	int fd;
 	fd = open(dump_log, O_CREAT|O_WRONLY|O_APPEND);
 
-	if(fd = -1){
+	if(fd == -1){
 		printf("can not open the file\n");
 		exit(2);
 	}
@@ -97,7 +101,7 @@ void dealData(u_char *usearg, const struct pcap_pkthdr *pkthdr, const u_char *pa
 	analysisData(pkthdr, packet);
 }
 
-void analysisData(const struct pcap_pkthdr pkthdr, u_char packet){
+void analysisData(const struct pcap_pkthdr *pkthdr, const u_char *packet){
 	//open in write append,create mode
 	int fd = open(analysis_log, O_CREAT|O_WRONLY|O_APPEND);
 	if(fd == -1){
