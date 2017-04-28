@@ -14,12 +14,13 @@
 #include<sys/types.h>
 #include<netinet/in.h>
 
+//only sniffer the packet from 80 port
 #define FILTER_PORT 80
+
 const char *dump_log = "grep_packet.log";
 const char *analysis_log = "grep_packet_analy.log";
 
 void filterPacket(pcap_t *device);	//filter the packet by port
-		
 void dealData(u_char *usearg, 
 		const struct pcap_pkthdr *pkthdr, const u_char *packet); //deal Data function
 void analysisData(const struct pcap_pkthdr *pkthdr, u_char *packet);
@@ -48,6 +49,7 @@ int main(int argc, char *argv[]){
 			exit(1);
 		}
 
+		//set filter rules
 		filterPacket(device);
 
 		/**
@@ -88,6 +90,7 @@ void dealData(u_char *usearg, const struct pcap_pkthdr *pkthdr, const u_char *pa
 	}
 	//write into the log
 	write(fd, packet, pkthdr->len + 1);
+	write(fd, "\n", 2);
 	clost(fd);
 
 	//analysis the data
