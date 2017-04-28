@@ -12,13 +12,14 @@
 #include<fcntl.h>
 #include<sys/stat.h>
 #include<sys/types.h>
-#include<
+#include<netinet/in.h>
 
 #define FILTER_PORT 80
 const char *dump_log = "grep_packet.log";
 const char *analysis_log = "grep_packet_analy.log";
 
-bool filterPacket(u_char *packet);	//filter the packet by port
+void filterPacket(pcap_t *device);	//filter the packet by port
+		
 void dealData(u_char *usearg, 
 		const struct pcap_pkthdr *pkthdr, const u_char *packet); //deal Data function
 void analysisData(const struct pcap_pkthdr *pkthdr, u_char *packet);
@@ -47,6 +48,8 @@ int main(int argc, char *argv[]){
 			exit(1);
 		}
 
+		filterPacket(device);
+
 		/**
 		 * pass user_id to identify
 		 * -1 is grep data util do not hava data
@@ -60,17 +63,22 @@ int main(int argc, char *argv[]){
 	}else{
 		//use user into to sniffer
 		//asume it is the IP like 192.168.10.1
+		in_addr IP;
+		if(isdigit(argv[1])){
+			inet_aton(argv[1], &IP);	
+		}else{
+			hostent *dns = gethostbyname(argv[1]);
+			if(dns == NULL){
+				fprintf(stdout, "there is no host like: %s\n",argv[1]);
+				exit(0);
+			}
+			IP = (in_addr) dns->h_addr_list[0];
+		}
 
 	}
 }
 
 void dealData(u_char *usearg, const struct pcap_pkthdr *pkthdr, const u_char *packet){
-	
-	bool stat = filterPacket(packet);
-
-	if(!stat)
-		return;
-
 	int fd;
 	fd = open(dump_log, O_CREAT|O_WRONLY|O_APPEND);
 
@@ -96,5 +104,19 @@ void analysisData(const struct pcap_pkthdr pkthdr, u_char packet){
 	
 	//TODO add the deal data logic and 
 	//then write into the log file
+	for(int i = 0; i < pkthdr->len; ++i){
+	}
+}
 
+void filterPacket(pcap_t *device){
+	char *filter_rule = "dst port 80";
+	struct bpf_program filter;
+	/**
+	 * filter save the compiled rule
+	 * 1 is need to optimize the rule
+	 * 0 is the network mask
+	 */
+	pcap_compile(device, &filter, filter_rule, 1, 0);
+	//appli the rule
+	pcap_setfilter(device, &filter);
 }
