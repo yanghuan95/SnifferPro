@@ -72,22 +72,9 @@ int main(int argc, char *argv[]){
 		pcap_loop(device, -1, dealData, (u_char *)&user_id);
 
 		pcap_close(device);
-	}else{
-		//use user into to sniffer
-		//asume it is the IP like 192.168.10.1
-		struct in_addr *IP = NULL;
-		if(isdigit(argv[1])){
-			inet_aton(argv[1], IP);	
-		}else{
-			struct hostent *dns = gethostbyname(argv[1]);
-			if(dns == NULL){
-				fprintf(stdout, "there is no host like: %s\n",argv[1]);
-				exit(0);
-			}
-			IP = (struct in_addr *) &dns->h_addr_list[0];
-		}
-
 	}
+
+	return 0;
 }
 
 void dealData(u_char *usearg, const struct pcap_pkthdr *pkthdr, const u_char *packet){
@@ -177,7 +164,7 @@ void analysisData(const struct pcap_pkthdr *pkthdr, const u_char *packet){
 	fprintf(fd, "src port : %d\n", tcp->source);
 	fprintf(fd, "dest port : %d\n", tcp->dest);
 	fprintf(fd, "seq of packet is %d\n", tcp->seq);
-
+	fprintf(fd, "seq of packet is %d\n", tcp->seq);
 	fprintf(fd, "-----------------------\n");
 
 	//get the data
