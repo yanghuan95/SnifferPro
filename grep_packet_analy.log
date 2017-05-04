@@ -1,0 +1,149 @@
+*************************
+grep packet length is 90
+received at : Thu May  4 11:40:05 2017
+
+src mac address is 00:0c:29:11:30:f1
+dest mac address is 00:50:56:fe:04:75
+ethernet type 800 is IP packet
+-----------------------
+decode the ip packet
+the IP packet length is: 19456
+the IP protocol is 17
+src ip : 192.168.78.128
+dest ip : 91.189.89.199
+-----------------------
+decode the tcp packet
+src port : 51415
+dest port : 31488
+seq of packet is -154912768
+-----------------------
+data :
+00 
+*************************
+grep packet length is 60
+received at : Thu May  4 11:40:05 2017
+
+src mac address is 00:50:56:fe:04:75
+dest mac address is ff:ff:ff:ff:ff:ff
+ethernet type 806 is ARP packet
+-----------------------
+decode the ip packet
+the IP packet length is: 8
+the IP protocol is 80
+src ip : 4.117.192.168
+dest ip : 78.2.0.0
+-----------------------
+decode the tcp packet
+src port : 0
+dest port : 0
+seq of packet is -2142328640
+-----------------------
+data :
+00 
+*************************
+grep packet length is 42
+received at : Thu May  4 11:40:05 2017
+
+src mac address is 00:0c:29:11:30:f1
+dest mac address is 00:50:56:fe:04:75
+ethernet type 806 is ARP packet
+-----------------------
+decode the ip packet
+the IP packet length is: 8
+the IP protocol is 12
+src ip : 48.241.192.168
+dest ip : 78.128.0.80
+-----------------------
+decode the tcp packet
+src port : 65110
+dest port : 29956
+seq of packet is 38709440
+-----------------------
+data :
+5a 
+*************************
+grep packet length is 90
+received at : Thu May  4 11:40:05 2017
+
+src mac address is 00:50:56:fe:04:75
+dest mac address is 00:0c:29:11:30:f1
+ethernet type 800 is IP packet
+-----------------------
+decode the ip packet
+the IP packet length is: 19456
+the IP protocol is 17
+src ip : 91.189.89.199
+dest ip : 192.168.78.128
+-----------------------
+decode the tcp packet
+src port : 31488
+dest port : 51415
+seq of packet is 1500198912
+-----------------------
+data :
+11 fd 34 7d dc b5 1e a3 0e c0 64 68 dc b5 21 15 
+1d 9a 53 09 dc b5 21 15 b3 dd 11 4f dc b5 21 15 
+b3 e2 2e 34 
+*************************
+grep packet length is 90
+received at : Thu May  4 11:40:37 2017
+
+src mac address is 00:0c:29:11:30:f1
+dest mac address is 00:50:56:fe:04:75
+ethernet type 800 is IP packet
+-----------------------
+decode the ip packet
+the IP packet length is: 19456
+the IP protocol is 17
+src ip : 192.168.78.128
+dest ip : 91.189.89.199
+-----------------------
+decode the tcp packet
+src port : 10958
+dest port : 31488
+seq of packet is -154912768
+-----------------------
+data :
+00 
+*************************
+grep packet length is 42
+received at : Thu May  4 11:40:43 2017
+
+src mac address is 00:0c:29:11:30:f1
+dest mac address is 00:50:56:fe:04:75
+ethernet type 806 is ARP packet
+-----------------------
+decode the ip packet
+the IP packet length is: 8
+the IP protocol is 12
+src ip : 48.241.192.168
+dest ip : 78.128.0.0
+-----------------------
+decode the tcp packet
+src port : 0
+dest port : 0
+seq of packet is 38709440
+-----------------------
+data :
+00 
+*************************
+grep packet length is 60
+received at : Thu May  4 11:40:43 2017
+
+src mac address is 00:50:56:fe:04:75
+dest mac address is 00:0c:29:11:30:f1
+ethernet type 806 is ARP packet
+-----------------------
+decode the ip packet
+the IP packet length is: 8
+the IP protocol is 80
+src ip : 4.117.192.168
+dest ip : 78.2.0.12
+-----------------------
+decode the tcp packet
+src port : 4393
+dest port : 61744
+seq of packet is -2142328640
+-----------------------
+data :
+00 
