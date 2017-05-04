@@ -24,6 +24,9 @@
 const char *dump_log = "grep_packet.log";
 const char *analysis_log = "grep_packet_analy.log";
 
+bpf_u_int32 *netp;	//save ip address
+bpf_u_int32 *maskp;	//save mask address
+
 void filterPacket(pcap_t *device);	//filter the packet by port
 void dealData(u_char *usearg, 
 		const struct pcap_pkthdr *pkthdr, const u_char *packet); //deal Data function
@@ -53,8 +56,14 @@ int main(int argc, char *argv[]){
 			exit(1);
 		}
 
+		if(pcap_lookupnet(device, netp,
+				maskp, errBuffer) == -1){
+			fprintf(stdout, "can't get eth ip address and mask", errBuffer);
+			exit(1);
+		}
+
 		//set filter rules
-		filterPacket(device);
+//		filterPacket(device);
 
 		/**
 		 * pass user_id to identify
@@ -85,6 +94,7 @@ int main(int argc, char *argv[]){
 }
 
 void dealData(u_char *usearg, const struct pcap_pkthdr *pkthdr, const u_char *packet){
+
 	int fd;
 	fd = open(dump_log, O_CREAT|O_WRONLY|O_APPEND);
 
@@ -93,16 +103,24 @@ void dealData(u_char *usearg, const struct pcap_pkthdr *pkthdr, const u_char *pa
 		exit(2);
 	}
 	//write into the log
-	write(fd, packet, pkthdr->len + 1);
-	write(fd, "\n", 2);
-	clost(fd);
+	fprintf(fd, "grep time is :%s\n", 
+			ctime((const time_t *)&pkthdr->ts.tv_sec));
+	fprintf(fd, "packet length is %d\n", pkthdr->len);
+	fprintf(fd, "packet is :\n%s\n", packet);
+
+	close(fd);
 
 	//analysis the data
 	analysisData(pkthdr, packet);
 }
 
 void analysisData(const struct pcap_pkthdr *pkthdr, const u_char *packet){
-	//open in write append,create mode
+	
+	struct ether_header *eptr;
+	u_char *ptr;
+
+	
+//open in write append,create mode
 	int fd = open(analysis_log, O_CREAT|O_WRONLY|O_APPEND);
 	if(fd == -1){
 		printf("can not open the file\n");
@@ -111,8 +129,67 @@ void analysisData(const struct pcap_pkthdr *pkthdr, const u_char *packet){
 	
 	//TODO add the deal data logic and 
 	//then write into the log file
-	for(int i = 0; i < pkthdr->len; ++i){
+	fprintf(fd, "grep packet length is %d\n", pkthdr->len);
+	fprintf(fd, "received at : %s\n", 
+			ctime((const time_t*)&pkthdr->ts.tv_sec));
+
+	eptr = (struct ether_header *)packet;
+	//save src and dest mac address
+	ptr = (u_char *)eptr->ether_shost;
+	fprintf(fd, "src mac address is %02x:%02x:%02x:%02x:%02x:%02x\n",
+			 *(ptr), *(ptr+1), *(ptr+2), *(ptr+3), *(ptr+4), *(ptr+5));
+
+	ptr = (u_char *)eptr->ether_dhost;
+	fprintf(fd, "dest mac address is %02x:%02x:%02x:%02x:%02x:%02x\n",
+			 *(ptr), *(ptr+1), *(ptr+2), *(ptr+3), *(ptr+4), *(ptr+5));
+
+	if(ntohs(eptr->ether_type) == ETHERTYPE_IP){
+		fprintf(fd, "ethernet type %x is IP packet\n",
+				ntohs(eptr->ether_type));
+	}else if(ntohs(eptr->ether_type) == ETHERTYPE_ARP){
+		fprintf(fd, "ethernet type %x is ARP packet\n",
+				ntohs(eptr->ether_type));
+	}else{
+		fprintf(fd, "type %x not a IP\n", ntohs(ethernet->ether_type));
+		return;
 	}
+	
+	fprintf(fd, "\n-----------------------\n");
+
+	//get ip packet 
+	fprintf(fd, "decode the ip packet\n");
+	struct iphdr *ip = (struct iphdr*) (packet + sizeof(struct ether_header));
+	fprintf(fd, "the IP packet length is: %d\n", ip->tot_len);
+	fprintf(fd, "the IP protocol is %d\n", ip->protocol);
+	struct in_addr address = ip->saddr;
+	fprintf(fd, "src ip : %s\n", inet_ntoa(address));
+	address = ip->daddr;
+	fprintf(fd, "dest ip : %s\n", inet_ntoa(address));
+
+	fprintf(fd, "\n-----------------------\n");
+
+	//get tcp packet
+	fprintf(fd, "decode the tcp packet\n");
+	struct tcphdr *tcp = (struct tcphdr *)(packet + sizeof(struct ether_header)
+					+ sizeof(struct iphdr));
+	fprintf(fd, "src port : %d\n", tcp->sport);
+	fprintf(fd, "dest port : %d\n", tcp->dport);
+	fprintf(fd, "seq of packet is %d\n", tcp->seq);
+
+	fprintf(fd, "\n-----------------------\n");
+
+	//get the data
+	fprintf(fd, "data :\n")
+	u_char *data = (u_char *)(struct tcphdr *)(packet + sizeof(struct ether_header)
+					+ sizeof(struct iphdr) + sizeof(struct tcphdr));
+
+	for(int i = 0; i < strlen(data); ++i){
+		fprintf(fd, "%02x ", data[i]);
+		if(i % 16 == 0)
+			fprintf(fd, "\n");
+	}
+
+	fprintf(fd, "\n-----------------------\n");
 }
 
 void filterPacket(pcap_t *device){
