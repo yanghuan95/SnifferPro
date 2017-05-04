@@ -6,6 +6,7 @@
  ************************************************************************/
 
 #include<stdio.h>
+#include<string.h>
 #include<unistd.h>
 #include<pcap.h>
 #include<time.h>
@@ -21,6 +22,8 @@
 #define FILTER_PORT 80
 const char *dump_log = "grep_packet.log";
 const char *analysis_log = "grep_packet_analy.log";
+
+pcap_dumper_t *dumper;
 
 void filterPacket(pcap_t *device);	//filter the packet by port
 		
@@ -45,14 +48,16 @@ int main(int argc, char *argv[]){
 		 * don't open the promiscuous mode
 		 * wait 1000ms, if above, just not grep data
 		 */
-		pcap_t *device = pcap_open_live(dev, 65535, 0, 1000, errBuffer);
+		pcap_t *device = pcap_open_live(dev, 65535, 1, 0, errBuffer);
 		
 		if(device == NULL){
 			fprintf(stdout, "fail to open live: %s\n", errBuffer);
 			exit(1);
 		}
 
-		filterPacket(device);
+		//filterPacket(device);
+
+		dumper = pcap_dump_open(device, analysis_log);
 
 		/**
 		 * pass user_id to identify
@@ -61,8 +66,10 @@ int main(int argc, char *argv[]){
 		 *  if wait data above 1000ms, will return back
 		 */
 		int user_id = 1;
-		pcap_dispatch(device, -1, dealData, (u_char *)&user_id);
+		printf("now, loop\n");
+		pcap_loop(device, -1, dealData, (u_char *)&user_id);
 
+		pcap_dump_close(dumper);
 		pcap_close(device);
 	}else{
 		//use user into to sniffer
@@ -83,6 +90,7 @@ int main(int argc, char *argv[]){
 }
 
 void dealData(u_char *usearg, const struct pcap_pkthdr *pkthdr, const u_char *packet){
+	printf("get a packet\n");
 	int fd;
 	fd = open(dump_log, O_CREAT|O_WRONLY|O_APPEND);
 
@@ -91,11 +99,13 @@ void dealData(u_char *usearg, const struct pcap_pkthdr *pkthdr, const u_char *pa
 		exit(2);
 	}
 	//write into the log
-	write(fd, packet, pkthdr->len + 1);
+	write(fd, packet, pkthdr->len+1);
+	write(fd, "\n", 2);
 	close(fd);
 
+
 	//analysis the data
-	analysisData(pkthdr, packet);
+//	analysisData(pkthdr, packet);
 }
 
 void analysisData(const struct pcap_pkthdr *pkthdr, const u_char *packet){
